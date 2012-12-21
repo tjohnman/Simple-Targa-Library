@@ -1,9 +1,11 @@
-// At present will only work on Little Endian machines
-// "unsigned short" must be 2 bytes
-// Image starts at lower-left corner (0, 0)
+// At present will only work on Little Endian machines.
+// "unsigned short" must be 2 bytes.
+// Image starts at lower-left corner (0, 0).
+// Supports 24/32 bit images only.
 
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 struct TGA_Color
 {
@@ -11,10 +13,11 @@ struct TGA_Color
 
 	TGA_Color()
 	{
-		r = g = b = a = 0;
+		r = g = b = 0;
+		a = 255;
 	}
 
-	TGA_Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha)
+	TGA_Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255)
 	{
 		r = red;
 		g = green;
@@ -53,7 +56,10 @@ public:
 	void set(unsigned short x, unsigned short y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 	TGA_Color get(unsigned short x, unsigned short y);
 	TGA_Color * colorMap();
+	unsigned int * pixels();
+	void loadPixels(unsigned int * memory);
 private:
 	TGA_Color * _mColorMap;
 	unsigned short _mWidth, _mHeight;
+	unsigned int * _mPixels;
 };

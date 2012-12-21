@@ -1,16 +1,65 @@
 #include "simpleTGA.h"
 
+TGAImage * TGA_Load(const char * path)
+{
+	std::fstream stream;
+	stream.open(path, std::fstream::in | std::fstream::binary);
+
+	stream.seekg(0, std::ios_base::end);
+	long length = stream.tellg();
+	stream.seekg(0, std::ios_base::beg);
+
+	// Simple uncompressed true-color image
+	char dumpBuffer[12];
+	stream.read(dumpBuffer, 12);
+	if(strcmp(dumpBuffer, "\0\0\2\0\0\0\0\0\0\0\0\0") != 0)
+	{
+		std::cout << "TGA: Unsupported format or invalid file.\n";
+		return NULL;
+	}
+
+	unsigned short width, height;
+	unsigned char bpp;
+
+	stream.read((char *)&width, 2);
+	stream.read((char *)&height, 2);
+	bpp = stream.get();
+
+	unsigned char desc;
+	desc = stream.get();
+	if(desc != 8)
+	{
+		std::cout << "TGA: Unsupported format or invalid file.\n";
+		return NULL;
+	}
+
+	// Data section
+	unsigned int * bytes = new unsigned int[width*height];
+	stream.read((char *)bytes, width*height*4);
+	stream.close();
+
+	TGAImage * newImage = new TGAImage(width, height);
+	newImage->loadPixels(bytes);
+	delete bytes;
+
+	return newImage;
+}
+
+// ----------- //
+
 TGAImage::TGAImage(unsigned short w, unsigned short h)
 {
 	_mWidth = w;
 	_mHeight = h;
 
 	_mColorMap = new TGA_Color[w*h];
+	_mPixels = new unsigned int[w*h];
 }
 
 TGAImage::~TGAImage()
 {
 	delete _mColorMap;
+	delete _mPixels;
 }
 
 
@@ -33,17 +82,8 @@ bool TGAImage::save(const char * path)
 	stream.put(8);
 
 	// Data section
-	unsigned int bytes = 0;
-
-	for(int y=0; y<_mHeight; ++y)
-	{
-		for(int x=0; x<_mWidth; x++)
-		{
-			bytes = _mColorMap[x+y*_mWidth].toBytes();
-			
-			stream.write((const char*)&bytes, sizeof(bytes));
-		}
-	}
+	unsigned int * bytes = pixels();
+	stream.write((const char *)bytes, sizeof(bytes));
 
 	stream.close();
 
@@ -53,11 +93,6 @@ bool TGAImage::save(const char * path)
 TGA_Color * TGAImage::colorMap()
 {
 	return _mColorMap;
-}
-
-bool TGAImage::load(const char * path)
-{
-	// TODO: Implementation
 }
 
 void TGAImage::set(unsigned short x, unsigned short y, TGA_Color color)
@@ -76,4 +111,18 @@ void TGAImage::set(unsigned short x, unsigned short y, unsigned char r, unsigned
 TGA_Color TGAImage::get(unsigned short x, unsigned short y)
 {
 	return _mColorMap[x+y*_mWidth];
+}
+
+unsigned int * TGAImage::pixels()
+{
+	for(int i=0; i<_mWidth*_mHeight; ++i)
+	{
+		_mPixels[i] = _mColorMap[i].toBytes();
+	}
+	return _mPixels;
+}
+
+void TGAImage::loadPixels(unsigned int * memory)
+{
+	memcpy(memory, _mPixels, sizeof(memory));
 }
