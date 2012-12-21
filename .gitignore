@@ -11,3 +11,8 @@
 *.lai
 *.la
 *.a
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+*.bak
