@@ -11,8 +11,9 @@ TGAImage * TGA_Load(const char * path)
 
 	// Simple uncompressed true-color image
 	char dumpBuffer[12];
+	char trueColorHeader[] = "\0\0\2\0\0\0\0\0\0\0\0\0";
 	stream.read(dumpBuffer, 12);
-	if(strcmp(dumpBuffer, "\0\0\2\0\0\0\0\0\0\0\0\0") != 0)
+	if(memcmp(dumpBuffer, trueColorHeader, 12) != 0)
 	{
 		std::cout << "TGA: Unsupported format or invalid file.\n";
 		return NULL;
