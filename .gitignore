@@ -1,3 +1,8 @@
+*.cbp
+obj
+bin
+main.cpp
+
 # Compiled Object files
 *.slo
 *.lo

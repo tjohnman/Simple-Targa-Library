@@ -1,5 +1,4 @@
 // At present will only work on Little Endian machines.
-// "unsigned short" must be 2 bytes.
 // Image starts at lower-left corner (0, 0).
 // Supports 24/32 bit images only.
 
@@ -9,7 +8,7 @@
 
 struct TGA_Color
 {
-	unsigned char r, g, b, a;
+	uint8_t r, g, b, a;
 
 	TGA_Color()
 	{
@@ -17,7 +16,7 @@ struct TGA_Color
 		a = 255;
 	}
 
-	TGA_Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255)
+	TGA_Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
 	{
 		r = red;
 		g = green;
@@ -34,7 +33,7 @@ struct TGA_Color
 		return *this;
 	}
 
-	unsigned int toBytes()
+	uint32_t toBytes()
 	{
 		// If support for Big Endian hosts is implemented,
 		// this needs to change (possibly among other things).
@@ -46,20 +45,20 @@ struct TGA_Color
 class TGAImage
 {
 public:
-	TGAImage(unsigned short w, unsigned short h);
+	TGAImage(uint16_t w, uint16_t h);
 	~TGAImage();
 
 	bool save(const char * path);
 	bool load(const char * path);
 
-	void set(unsigned short x, unsigned short y, TGA_Color color);
-	void set(unsigned short x, unsigned short y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-	TGA_Color get(unsigned short x, unsigned short y);
+	void set(uint16_t x, uint16_t y, TGA_Color color);
+	void set(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	TGA_Color get(uint16_t x, uint16_t y);
 	TGA_Color * colorMap();
-	unsigned int * pixels();
-	void loadPixels(unsigned int * memory);
+	uint32_t * pixels();
+	void loadPixels(uint32_t * memory);
 private:
 	TGA_Color * _mColorMap;
-	unsigned short _mWidth, _mHeight;
-	unsigned int * _mPixels;
+	uint16_t _mWidth, _mHeight;
+	uint32_t * _mPixels;
 };

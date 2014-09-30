@@ -6,12 +6,12 @@ TGAImage * TGA_Load(const char * path)
 	stream.open(path, std::fstream::in | std::fstream::binary);
 
 	stream.seekg(0, std::ios_base::end);
-	long length = stream.tellg();
+	size_t length = stream.tellg();
 	stream.seekg(0, std::ios_base::beg);
 
 	// Simple uncompressed true-color image
 	char dumpBuffer[12];
-	char trueColorHeader[] = "\0\0\2\0\0\0\0\0\0\0\0\0";
+	uint8_t trueColorHeader[] = "\0\0\2\0\0\0\0\0\0\0\0\0";
 	stream.read(dumpBuffer, 12);
 	if(memcmp(dumpBuffer, trueColorHeader, 12) != 0)
 	{
@@ -19,14 +19,14 @@ TGAImage * TGA_Load(const char * path)
 		return NULL;
 	}
 
-	unsigned short width, height;
-	unsigned char bpp;
+	uint16_t width, height;
+	uint8_t bpp;
 
 	stream.read((char *)&width, 2);
 	stream.read((char *)&height, 2);
 	bpp = stream.get();
 
-	unsigned char desc;
+	uint8_t desc;
 	desc = stream.get();
 	if(desc != 8)
 	{
@@ -35,7 +35,7 @@ TGAImage * TGA_Load(const char * path)
 	}
 
 	// Data section
-	unsigned int * bytes = new unsigned int[width*height];
+	uint32_t * bytes = new uint32_t[width*height];
 	stream.read((char *)bytes, width*height*4);
 	stream.close();
 
@@ -48,13 +48,13 @@ TGAImage * TGA_Load(const char * path)
 
 // ----------- //
 
-TGAImage::TGAImage(unsigned short w, unsigned short h)
+TGAImage::TGAImage(uint16_t w, uint16_t h)
 {
 	_mWidth = w;
 	_mHeight = h;
 
 	_mColorMap = new TGA_Color[w*h];
-	_mPixels = new unsigned int[w*h];
+	_mPixels = new uint32_t[w*h];
 }
 
 TGAImage::~TGAImage()
@@ -77,14 +77,14 @@ bool TGAImage::save(const char * path)
 
 	// Image specification
 	stream.write("\0\0\0\0", 4); // Origin
-	stream.write((const char *)&_mWidth, sizeof(_mWidth)); // width
-	stream.write((const char *)&_mHeight, sizeof(_mHeight)); // height
+	stream.write((char *)&_mWidth, sizeof(_mWidth)); // width
+	stream.write((char *)&_mHeight, sizeof(_mHeight)); // height
 	stream.put(32); // bpp
 	stream.put(8);
 
 	// Data section
-	unsigned int * bytes = pixels();
-	stream.write((const char *)bytes, sizeof(bytes));
+	uint32_t * bytes = pixels();
+	stream.write((char *)bytes, sizeof(bytes));
 
 	stream.close();
 
@@ -96,12 +96,12 @@ TGA_Color * TGAImage::colorMap()
 	return _mColorMap;
 }
 
-void TGAImage::set(unsigned short x, unsigned short y, TGA_Color color)
+void TGAImage::set(uint16_t x, uint16_t y, TGA_Color color)
 {
 	_mColorMap[x+y*_mWidth] = color;
 }
 
-void TGAImage::set(unsigned short x, unsigned short y, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+void TGAImage::set(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 	_mColorMap[x+y*_mWidth].r = r;
 	_mColorMap[x+y*_mWidth].g = g;
@@ -109,7 +109,7 @@ void TGAImage::set(unsigned short x, unsigned short y, unsigned char r, unsigned
 	_mColorMap[x+y*_mWidth].a = a;
 }
 
-TGA_Color TGAImage::get(unsigned short x, unsigned short y)
+TGA_Color TGAImage::get(uint16_t x, uint16_t y)
 {
 	return _mColorMap[x+y*_mWidth];
 }
@@ -123,7 +123,7 @@ unsigned int * TGAImage::pixels()
 	return _mPixels;
 }
 
-void TGAImage::loadPixels(unsigned int * memory)
+void TGAImage::loadPixels(uint32_t * memory)
 {
-	memcpy(memory, _mPixels, sizeof(memory));
+	memcpy(memory, _mPixels, 4);
 }
